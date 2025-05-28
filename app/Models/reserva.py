@@ -33,6 +33,8 @@ class Reserva(db.Model):
 
 routes = Blueprint("routes", __name__)
 
+class ReservaNotFound(Exception):
+    pass
 
 def validar_turma(turma_id):
     resp = requests.get(f"http://localhost:8000/api/turmas/{turma_id}") #URL da nossa aplicação
@@ -64,7 +66,11 @@ def listar_reservas():
     reservas = Reserva.query.all()
     return jsonify([r.to_dict() for r in reservas])
 
-
+def obter_reserva(id_reserva):
+    reserva = Reserva.query.get(id_reserva)
+    if not reserva:
+        raise ReservaNotFound()
+    return reserva
 
 def existe_reserva(sala, data, hora_inicio):
     return Reserva.query.filter_by(sala=sala, data=data, hora_inicio=hora_inicio).first() is not None

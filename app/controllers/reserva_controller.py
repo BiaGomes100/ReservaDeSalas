@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, response
 from app.Models import reserva
 from app.database import db
+from app.service.service import TurmaServiceClient
 
 routes_bp = Blueprint("routes", __name__)
 
@@ -29,3 +30,14 @@ def delete_reserva(id_turma):
         return jsonify({"Reserva excluída": False}), 204
 
 
+@routes_bp.route('/<int:id_reserva>/turma/<int:id_turma>', methods=['GET'])
+def obter_reserva_para_turma(id_reserva, id_turma):
+    try:
+        reserva = reserva.obter_reserva(id_reserva)
+
+        if not TurmaServiceClient.verificar_turma(id_turma):
+            return jsonify({'erro': 'Turma não encontrada'}), 404
+
+        return jsonify(reserva.to_dict())
+    except reserva.ReservaNotFound:
+        return jsonify({'erro': 'Reserva não encontrada'}), 404
