@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, response
 from app.Models import reserva
-from app.database import db
+from app.db import db
 from app.service.service import TurmaServiceClient
 
 routes_bp = Blueprint("routes", __name__)
