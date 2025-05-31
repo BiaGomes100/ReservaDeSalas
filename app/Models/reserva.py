@@ -1,5 +1,5 @@
-from app.db import db
-from flask import Blueprint, request, jsonify
+from db import db
+from flask import Blueprint, jsonify
 import requests
 
 class Reserva(db.Model):
@@ -42,25 +42,24 @@ def validar_turma(turma_id):
 
 
 
-def criar_reserva(reserva):
-    dados = request.json
-    turma_id = dados.get("turma_id")
+def criar_reserva(reserva_data):
+    turma_id = reserva_data.get("turma_id")
 
     if not validar_turma(turma_id):
-        return jsonify({"erro": "Turma não encontrada"}), 400
+        raise ReservaNotFound("Turma não encontrada")
 
     reserva_nova = Reserva(
-        turma_id= reserva['turma_id'],
-        sala=reserva['sala'],
-        data=reserva['data'],
-        hora_inicio=reserva['hora_inicio'],
-        hora_fim=reserva['hora_fim']
+        turma_id=reserva_data['turma_id'],
+        sala=reserva_data['sala'],
+        data=reserva_data['data'],
+        hora_inicio=reserva_data['hora_inicio'],
+        hora_fim=reserva_data['hora_fim']
     )
 
     db.session.add(reserva_nova)
     db.session.commit()
 
-    return jsonify({"mensagem": "Reserva criada com sucesso"}), 201
+    return reserva_nova 
 
 def listar_reservas():
     reservas = Reserva.query.all()
@@ -76,9 +75,10 @@ def existe_reserva(sala, data, hora_inicio):
     return Reserva.query.filter_by(sala=sala, data=data, hora_inicio=hora_inicio).first() is not None
 
 
-def deletar_reserva(id_reserva):
-    reserva = Reserva.query.get['id_reserva']
+def excluir_reserva(id_reserva):
+    reserva = Reserva.query.get(id_reserva)
     if not reserva:
-        jsonify({"mensagem": "Não encontramos reserva com esse ID"}), 404
+        return False
     db.session.delete(reserva)
     db.session.commit()
+    return True
